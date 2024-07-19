@@ -4,6 +4,10 @@ require('dotenv').config()
 const PORT = process.env.PORT || 3500
 const cors = require('cors')
 const errorMiddleware = require('./middleware/catchAsyncError.middleware')
+const connectDB = require('./config/connDb.config')
+const mongoose = require('mongoose')
+
+connectDB();
 
 app.use(cors({
     origin: process.env.CLIENT_BASE_URL,
@@ -13,11 +17,11 @@ app.use(cors({
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-app.all('*', (req, res)=>{
+app.all('*', (req, res) => {
     res.status(404);
-    if(req.accepts('.html')){
+    if (req.accepts('.html')) {
         res.sendFile(path.join(__dirname, "view", "404.html"));
-    } else if(req.accepts('.json')) {
+    } else if (req.accepts('.json')) {
         res.json({
             message: "requested page not found"
         })
@@ -28,6 +32,9 @@ app.all('*', (req, res)=>{
 
 app.use(errorMiddleware);
 
-server.listen(PORT, () => {
-    console.log(`Server is running at PORT ${PORT}`);
+mongoose.connection.once('open', () => {
+    console.log("DB connected");
+    server.listen(PORT, () => {
+        console.log(`Server is running at PORT ${PORT}`);
+    })
 })
