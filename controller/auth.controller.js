@@ -18,11 +18,12 @@ const login = catchAsyncError(async (req, res, next) => {
     if (!user || !isValidPass)
         return next(new ErrorHandler('Wrong email or password', 401))
 
-    sendToken(res, { email: email });
+    const accessToken = sendToken(res, { email: email });
 
     res.status(200).json({
         success: true,
-        message: "Successfully logged In"
+        message: "Successfully logged In",
+        data: { accessToken }
     })
 })
 
@@ -79,21 +80,22 @@ const verifyEmail = catchAsyncError(async (req, res, next) => {
     user.isVerified = true;
     await user.save();
 
-    sendToken(res, { email: user.email });
+    const accessToken = sendToken(res, { email: user.email });
 
     res.status(200).json({
         success: true,
-        message: "Email verification success."
+        message: "Email verification success.",
+        data: { accessToken }
     });
 })
 
 const forgetPassword = catchAsyncError(async (req, res, next) => {
     const email = req.body.email;
-    if(!email)
+    if (!email)
         return next(new ErrorHandler("Email is required", 400));
 
     const user = await User.findOne({ email: email });
-    if(!user)
+    if (!user)
         return next(new ErrorHandler("Account not found", 400));
 
     const token = jwt.sign({ email: email },
@@ -105,7 +107,11 @@ const forgetPassword = catchAsyncError(async (req, res, next) => {
         html: resetPasswordTemplate(`${process.env.CLIENT_BASE_URL}/resetPassword?token=${token}`)
     })
 
-    res.status(200).json({success: true, message: "Password reset link is sent. Please check your email."})
+    res.status(200).json({
+        success: true,
+        message: "Password reset link is sent. Please check your email.",
+        data: { accessToken }
+    })
 })
 
 const changePassword = catchAsyncError(async (req, res, next) => {
@@ -116,17 +122,21 @@ const changePassword = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler('Invalid Token', 401))
 
     const password = req.body.password;
-    if(!password)
+    if (!password)
         return next(new ErrorHandler("Password is required", 400));
 
-    const user = await User.findOne({email: decoded.email});
+    const user = await User.findOne({ email: decoded.email });
     const hashedPassword = bcrypt.hashSync(password, 10);
 
     user.password = hashedPassword;
     await user.save();
 
-    sendToken(res, {email: user.email});
-    res.status(200).json({success: true, message: "Password updated successfully"})
+    const accessToken = sendToken(res, { email: user.email });
+    res.status(200).json({
+        success: true,
+        message: "Password updated successfully",
+        data: { accessToken }
+    })
 })
 
 const validateEmail = (email) => {
@@ -138,18 +148,26 @@ const validateEmail = (email) => {
 };
 
 const sendToken = (res, payload) => {
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
         payload,
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: '6h' }
+        { expiresIn: '12h' }
     )
 
-    res.cookie('jwt', token, {
+    const refreshToken = jwt.sign(
+        payload,
+        process.env.REFRESH_TOKEN_SECRET,
+        { expiresIn: '12h' }
+    )
+
+    res.cookie('jwt', refreshToken, {
         httpOnly: true,
         sameSite: 'None',
         secore: true,
-        maxAge: 6 * 60 * 60 * 1000
+        maxAge: 12 * 60 * 60 * 1000
     })
+
+    return accessToken;
 }
 
 module.exports = {
