@@ -11,7 +11,9 @@ const io = new Server(server, {
     }
 })
 
-io.on('connection', (socket) => {
+
+
+io.on('connection', (headers, socket) => {
     console.log("new user connected to socket")
 
     socket.on('disconnect', () => {
