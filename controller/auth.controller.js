@@ -151,7 +151,7 @@ const sendToken = (res, payload) => {
     const accessToken = jwt.sign(
         payload,
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: '12h' }
+        { expiresIn: '10d' }
     )
 
     const refreshToken = jwt.sign(

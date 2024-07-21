@@ -9,7 +9,7 @@ const error = (error, req, res, next) => {
         error = new ErrorHandler(message, 400);
     }
     else if(error.name === 'TokenExpiredError'){
-        console.log("Token Expired")
+        // console.log("Token Expired")
         const message = "Token Expired. Please login again";
         error = new ErrorHandler(message, 401);
     }
