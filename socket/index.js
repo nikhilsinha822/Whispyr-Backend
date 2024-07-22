@@ -1,32 +1,33 @@
 const express = require('express')
 const app = express();
-
-const cors = {
-    origin: process.env.CLIENT_BASE_URL,
-    credentials: true
-}
 const server = require('http').createServer(app)
-const io = require('socket.io')(server, cors)
-
+const io = require('socket.io')(server, { cors: { origin: process.env.CLIENT_BASE_URL } })
 const verifyJWT = require('./middleware/verifyJWT.middleware')
+const Conversation = require('../models/conversation.model')
 const socketConnectionHandler = require('./handlers/socketConnection.handler')
+const registerMessageHandler = require('./handlers/registerMessage.handler')
 
 io.use(verifyJWT)
 
 const userSocketMap = {} // {userEmail: socketId}
-const groupMap = {} // {groupId: [userEmail]}
 
-const onConnection = (socket) => {
-    userSocketMap[socket.user.email] = socket.id
-    
+const onConnection = async (socket) => {
+    const sender = socket.user;
+    userSocketMap[sender.email] = socket.id;
+    const groupIds = await Conversation.find({
+        participants: { $all: [sender._id] },
+        type: 1,
+    }).select('_id');
+
+    groupIds.forEach(({ _id: groupId }) => {
+        socket.join(groupId.toString());
+    });
+
     io.emit('onlineUser', Object.keys(userSocketMap))
     console.log(`User connected: ${socket.user.email}, Socket ID: ${socket.id}`);
 
-    const eventProps = {
-        userSocketMap,
-        groupMap,
-    }
-
+    const eventProps = { userSocketMap, groupIds }
+    registerMessageHandler(io, socket, eventProps);
     socketConnectionHandler(io, socket, eventProps);
 }
 

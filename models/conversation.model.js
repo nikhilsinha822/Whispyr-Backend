@@ -15,11 +15,6 @@ const conversationSchema = mongoose.Schema({
         enum: [0, 1], //0:individual, 1:group
         required: true
     },
-    messageId:[{
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: 'Message'
-    }],
     lastMessage:{
         type: mongoose.Schema.Types.ObjectId,
         required: true,
