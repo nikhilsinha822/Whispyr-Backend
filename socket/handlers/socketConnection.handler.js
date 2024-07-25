@@ -19,8 +19,8 @@ const socketConnectionHandler = (io, socket, eventProps) => {
         console.log(`User disconnected: ${socket.user.email}, Socket ID: ${socket.id}`);
     }
 
-    socket.on("reconnect", wrapHandler(reconnectSocket));
-    socket.on("disconnect", wrapHandler(disconnectSocket));
+    socket.on("reconnect", wrapHandler(socket, reconnectSocket));
+    socket.on("disconnect", wrapHandler(socket, disconnectSocket));
 }
 
 module.exports = socketConnectionHandler

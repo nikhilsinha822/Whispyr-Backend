@@ -5,8 +5,9 @@ const wrapMiddleware = (func) => (socket, next) => {
     });
 }
 
-const wrapHandler = (func) => (...args) => {
+const wrapHandler = (socket, func) => (...args) => {
     Promise.resolve(func(...args)).catch(error => {
+        socket.emit("error", {success: false, error: error.message})
         console.error('Handler error:', error);
     });
 }

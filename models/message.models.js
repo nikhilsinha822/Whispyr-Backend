@@ -20,7 +20,7 @@ const messageSchema = mongoose.Schema({
     conversation:{
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: 'User'
+        ref: 'Conversation'
     },
     status: {
         type: Number,
