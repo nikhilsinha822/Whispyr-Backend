@@ -18,7 +18,7 @@ const login = catchAsyncError(async (req, res, next) => {
     if (!user || !isValidPass)
         return next(new ErrorHandler('Wrong email or password', 401))
 
-    const accessToken = sendToken(res, { email: email });
+    const accessToken = sendToken(res, { email: email, _id: user._id });
 
     res.status(200).json({
         success: true,
@@ -80,7 +80,7 @@ const verifyEmail = catchAsyncError(async (req, res, next) => {
     user.isVerified = true;
     await user.save();
 
-    const accessToken = sendToken(res, { email: user.email });
+    const accessToken = sendToken(res, { email: user.email, _id: user._id });
 
     res.status(200).json({
         success: true,
@@ -131,7 +131,7 @@ const changePassword = catchAsyncError(async (req, res, next) => {
     user.password = hashedPassword;
     await user.save();
 
-    const accessToken = sendToken(res, { email: user.email });
+    const accessToken = sendToken(res, { email: user.email, _id: user._id });
     res.status(200).json({
         success: true,
         message: "Password updated successfully",

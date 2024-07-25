@@ -32,6 +32,7 @@ cloudinary.config({
 app.use('/', express.static(path.join(__dirname, 'public')))
 
 app.use('/auth', require('./routes/auth.route'))
+app.use('/api', require('./routes/message.route'))
 
 app.all('*', (req, res) => {
     res.status(404);
