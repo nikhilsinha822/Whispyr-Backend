@@ -32,7 +32,7 @@ const getChatList = catchAsyncError(async (req, res, next) => {
         participants: {
             $all: [{ "$elemMatch": { $eq: userId } }]
         }
-    }).populate('lastMessage').sort({ updatedAt: -1 })
+    }).populate('lastMessage').populate('participants', 'name email avatar').sort({ updatedAt: -1 })
 
     const convIDs = conv.map((conv) => conv._id)
     await Promise.all(convIDs.map((convID) => Message.updateMany({
