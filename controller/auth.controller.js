@@ -13,9 +13,11 @@ const login = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Missing required fields", 400))
 
     const user = await User.findOne({ email: email });
+    if(!user)
+        return next(new ErrorHandler('Wrong email or password', 401))
 
-    const isValidPass = bcrypt.compareSync(password, user?.password);
-    if (!user || !isValidPass)
+    const isValidPass = bcrypt.compareSync(password, user.password);
+    if (!isValidPass)
         return next(new ErrorHandler('Wrong email or password', 401))
 
     const accessToken = sendToken(res, { email: email, _id: user._id });

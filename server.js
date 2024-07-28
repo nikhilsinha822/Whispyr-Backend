@@ -3,7 +3,7 @@ const { app, server } = require('./socket')
 require('dotenv').config()
 const PORT = process.env.PORT || 3500
 const cors = require('cors')
-const errorMiddleware = require('./middleware/catchAsyncError.middleware')
+const errorMiddleware = require('./middleware/error.middleware')
 const connectDB = require('./config/connDb.config')
 const mongoose = require('mongoose')
 const path = require('path')
