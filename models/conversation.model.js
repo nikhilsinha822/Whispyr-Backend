@@ -17,11 +17,12 @@ const conversationSchema = mongoose.Schema({
     },
     lastMessage:{
         type: mongoose.Schema.Types.ObjectId,
-        required: true,
         ref: 'Message'
     }
 }, {timestamps: true})
 
 conversationSchema.index({ participants: 1 });
+conversationSchema.index({ type: 1 });
+conversationSchema.index({ lastMessage: 1 });
 
 module.exports = mongoose.model('Conversation', conversationSchema)

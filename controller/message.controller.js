@@ -28,24 +28,37 @@ const getFileUploadSignature = catchAsyncError(async (req, res, next) => {
 const getChatList = catchAsyncError(async (req, res, next) => {
     const userId = req.user._id;
 
-    const conv = await Conversation.find({
-        participants: {
-            $all: [{ "$elemMatch": { $eq: userId } }]
-        }
-    }).populate('lastMessage').populate('participants', 'name email avatar').sort({ updatedAt: -1 })
+    const conversations = await Conversation.find({ participants: userId })
+        .populate('lastMessage')
+        .populate('participants', 'name email avatar')
+        .sort({ updatedAt: -1 })
 
-    const convIDs = conv.map((conv) => conv._id)
-    await Promise.all(convIDs.map((convID) => Message.updateMany({
-        conversation: convID,
-        status: { $lt: 1 },
-        sender: { $ne: userId }
-    }, {
-        $set: { status: 1 }
-    })))
+    const convResponse = await Promise.all(
+        conversations.map(async (conversation) => {
+            const unreadMessageCount = await Message.countDocuments({
+                conversation: conversation._id,
+                'readBy.user': userId,
+                'readBy.status': { $lte: 1 },
+                sender: { $ne: userId }
+            });
+
+            await Message.updateMany({
+                conversation: conversation._id,
+                'readBy.user': userId,
+                'readBy.status': { $lt: 1 },
+                sender: { $ne: userId }
+            }, { $set: { 'readBy.$.status': 1 } })
+
+            return {
+                ...conversation.toObject(),
+                unreadMessageCount
+            };
+        })
+    )
 
     res.status(200).json({
         success: true,
-        data: conv
+        data: convResponse
     })
 })
 
@@ -60,9 +73,11 @@ const getChatMessage = catchAsyncError(async (req, res, next) => {
 
     await Message.updateMany({
         conversation: conversationId,
+        'readBy.user': userId,
+        'readBy.status': { $lte: 1 },
         sender: { $ne: userId }
     }, {
-        $set: { status: 2 }
+        $set: { 'readBy.$.status': 2 }
     })
     const messages = await Message.find({ conversation: conversationId }).sort({ createdAt: -1 });
 

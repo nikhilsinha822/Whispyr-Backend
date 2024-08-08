@@ -5,7 +5,7 @@ const io = require('socket.io')(server, { cors: { origin: process.env.CLIENT_BAS
 const verifyJWT = require('./middleware/verifyJWT.middleware')
 const Conversation = require('../models/conversation.model')
 const socketConnectionHandler = require('./handlers/socketConnection.handler')
-const registerMessageHandler = require('./handlers/registerMessage.handler')
+const messageHandler = require('./handlers/message.handler')
 
 io.use(verifyJWT)
 
@@ -27,7 +27,7 @@ const onConnection = async (socket) => {
     console.log(`User connected: ${socket.user.email}, Socket ID: ${socket.id}`);
 
     const eventProps = { userSocketMap, groupIds }
-    registerMessageHandler(io, socket, eventProps);
+    messageHandler(io, socket, eventProps);
     socketConnectionHandler(io, socket, eventProps);
 }
 

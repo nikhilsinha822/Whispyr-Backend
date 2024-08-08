@@ -4,7 +4,7 @@ const User = require('../../models/user.model')
 const { wrapHandler } = require('../middleware/errorWrapper.middleware')
 const { ObjectId } = require('mongodb')
 
-const registerMessageHandler = (io, socket, eventProps) => {
+const MessageHandler = (io, socket, eventProps) => {
     const { userSocketMap } = eventProps;
 
     const handleIndividualMessage = async (payload) => {
@@ -20,6 +20,7 @@ const registerMessageHandler = (io, socket, eventProps) => {
         const senderId = socket.user._id;
 
         const newConversation = {
+            name: `${socket.user.name} and ${receiver.name}`,
             participants: [senderId, receiverId],
             type: 0,
             lastMessage: null
@@ -42,7 +43,11 @@ const registerMessageHandler = (io, socket, eventProps) => {
             text: text || '',
             assets: assets || [],
             sender: senderId,
-            conversation: convResp._id
+            conversation: convResp._id,
+            readBy: [
+                { user: senderId, status: 2, timestamp: new Date() },
+                { user: receiverId, status: 0, timestamp: new Date() }
+            ]
         })
 
         await Conversation.findByIdAndUpdate(convResp._id, {
@@ -74,7 +79,12 @@ const registerMessageHandler = (io, socket, eventProps) => {
             text: text || '',
             assets: assets || [],
             sender: senderId,
-            conversation: conversationId
+            conversation: conversationId,
+            readBy: conversation.participants.map(participantId => ({
+                user: participantId,
+                status: participantId.equals(senderId) ? 2 : 0,
+                timestamp: new Date()
+            }))
         })
 
         await Conversation.findByIdAndUpdate(conversationId, {
@@ -92,8 +102,14 @@ const registerMessageHandler = (io, socket, eventProps) => {
             throw new Error("Message ID is required for status update")
 
         const result = await Message.findOneAndUpdate(
-            { _id: messageID, status: { $lt: 2 } },
-            { $set: { status: 2 } },
+            {
+                _id: messageID,
+                'readBy.user': socket.user._id,
+                'readBy.status': { $lt: 2 }
+            },
+            {
+                $set: { 'readBy.$.status': 2, 'readBy.$.timestamp': new Date() }
+            },
             { new: true }
         ).populate('sender')
 
@@ -107,12 +123,17 @@ const registerMessageHandler = (io, socket, eventProps) => {
             throw new Error("Message ID is required for status update")
 
         const result = await Message.findOneAndUpdate(
-            { _id: messageID, status: 0 },
-            { $set: { status: 1 } },
+            { 
+                _id: messageID, 
+                'readBy.user': socket.user._id,
+                'readBy.status': 0
+            },
+            { 
+                $set: { 'readBy.$.status': 1, 'readBy.$.timestamp': new Date() }
+            },
             { new: true }
         ).populate('sender')
 
-        console.log(messageID, await Message.findById(messageID))
         if (userSocketMap[result.sender.email])
             io.to(userSocketMap[result.sender.email]).emit("receive:receivedMessage", result);
     }
@@ -124,4 +145,4 @@ const registerMessageHandler = (io, socket, eventProps) => {
     socket.on('send:receivedMessage', wrapHandler(socket, handleMessageReceived));
 }
 
-module.exports = registerMessageHandler
+module.exports = MessageHandler

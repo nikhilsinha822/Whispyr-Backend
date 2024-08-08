@@ -25,7 +25,7 @@ const login = catchAsyncError(async (req, res, next) => {
     res.status(200).json({
         success: true,
         message: "Successfully logged In",
-        data: { accessToken, user: user.email }
+        data: { accessToken, email: user.email, _id: user._id}
     })
 })
 
@@ -87,7 +87,7 @@ const verifyEmail = catchAsyncError(async (req, res, next) => {
     res.status(200).json({
         success: true,
         message: "Email verification success.",
-        data: { accessToken, email: user.email }
+        data: { accessToken, email: user.email, _id: user._id}
     });
 })
 
@@ -112,7 +112,7 @@ const forgetPassword = catchAsyncError(async (req, res, next) => {
     res.status(200).json({
         success: true,
         message: "Password reset link is sent. Please check your email.",
-        data: { accessToken, email: user.email }
+        data: { accessToken, email: user.email, _id: user._id}
     })
 })
 
@@ -137,7 +137,7 @@ const changePassword = catchAsyncError(async (req, res, next) => {
     res.status(200).json({
         success: true,
         message: "Password updated successfully",
-        data: { accessToken, email: user.email }
+        data: { accessToken, email: user.email, _id: user._id }
     })
 })
 
