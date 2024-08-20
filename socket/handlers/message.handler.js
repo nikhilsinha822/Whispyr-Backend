@@ -118,7 +118,7 @@ const MessageHandler = (io, socket, eventProps) => {
         ).populate('sender')
 
         if (userSocketMap[result.sender.email])
-            io.to(userSocketMap[result.sender.email]).emit("receive:seenMessage", result);
+            socket.to(userSocketMap[result.sender.email]).emit("receive:seenMessage", result);
     }
 
     const handleMessageReceived = async (payload) => {
@@ -139,7 +139,7 @@ const MessageHandler = (io, socket, eventProps) => {
         ).populate('sender')
 
         if (userSocketMap[result.sender.email])
-            io.to(userSocketMap[result.sender.email]).emit("receive:receivedMessage", result);
+            socket.to(userSocketMap[result.sender.email]).emit("receive:receivedMessage", result);
     }
 
     const handleMessage = (payload) => payload.type === 1 ? handleGroupMessage(payload) : handleIndividualMessage(payload);
