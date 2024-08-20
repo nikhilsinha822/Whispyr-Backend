@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express();
 const server = require('http').createServer(app)
+require('dotenv').config()
 const io = require('socket.io')(server, { cors: { origin: process.env.CLIENT_BASE_URL } })
 const verifyJWT = require('./middleware/verifyJWT.middleware')
 const Conversation = require('../models/conversation.model')
@@ -12,7 +13,7 @@ io.use(verifyJWT)
 const userSocketMap = {} // {userEmail: socketId}
 
 const onConnection = async (socket) => {
-    const sender = socket.user;
+    const sender = socket.user; 
     userSocketMap[sender.email] = socket.id;
     const groupIds = await Conversation.find({
         participants: { $all: [sender._id] },

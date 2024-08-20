@@ -20,7 +20,7 @@ const MessageHandler = (io, socket, eventProps) => {
         const senderId = socket.user._id;
 
         const newConversation = {
-            name: `${socket.user.name} and ${receiver.name}`,
+            name: `${receiver.email}`,
             participants: [senderId, receiverId],
             type: 0,
             lastMessage: null
@@ -50,14 +50,16 @@ const MessageHandler = (io, socket, eventProps) => {
             ]
         })
 
-        await Conversation.findByIdAndUpdate(convResp._id, {
+        const updatedConversation = await Conversation.findByIdAndUpdate(convResp._id, {
             lastMessage: msgResp._id
-        })
+        }, { new: true }).populate('participants', 'name email _id').populate('lastMessage')
+
+        msgResp.conversation = updatedConversation
 
         if (userSocketMap[receiverEmail])
             io.to(userSocketMap[receiverEmail]).emit('receive:newMessage', msgResp)
 
-        socket.emit('messageSent', { success: true, messageId: msgResp._id });
+        socket.emit('messageSent', { success: true, message: msgResp });
     }
 
     const handleGroupMessage = async (payload) => {
@@ -87,13 +89,15 @@ const MessageHandler = (io, socket, eventProps) => {
             }))
         })
 
-        await Conversation.findByIdAndUpdate(conversationId, {
+        const updatedConversation = await Conversation.findByIdAndUpdate(conversationId, {
             lastMessage: msgResp._id
-        })
+        }, { new: true }).populate('participants', 'name email _id').populate('lastMessage')
+
+        msgResp.conversation = updatedConversation
 
         socket.to(conversationId).emit('receive:newMessage', msgResp)
 
-        socket.emit('messageSent', { success: true, messageId: msgResp._id });
+        socket.emit('messageSent', { success: true, message: msgResp });
     }
 
     const handleMessageSeen = async (payload) => {
@@ -123,12 +127,12 @@ const MessageHandler = (io, socket, eventProps) => {
             throw new Error("Message ID is required for status update")
 
         const result = await Message.findOneAndUpdate(
-            { 
-                _id: messageID, 
+            {
+                _id: messageID,
                 'readBy.user': socket.user._id,
                 'readBy.status': 0
             },
-            { 
+            {
                 $set: { 'readBy.$.status': 1, 'readBy.$.timestamp': new Date() }
             },
             { new: true }
