@@ -144,9 +144,25 @@ const MessageHandler = (io, socket, eventProps) => {
 
     const handleMessage = (payload) => payload.type === 1 ? handleGroupMessage(payload) : handleIndividualMessage(payload);
 
+    const handleSeenConversation = async (payload) => {
+        const conversation = ObjectId.createFromHexString(payload.conversation)
+
+        const result = await Conversation.findById(conversation).populate('participants', 'email _id');
+        if (result.type) {
+            socket.to(conversation).emit('receive:seenConversation', { conversation, userId: socket.user._id });
+            return;
+        }
+        const sender = result.participants.find((participant) => participant._id !== socket.user._id)
+
+        if (userSocketMap[sender.email])
+            socket.to(userSocketMap[sender.email]).emit('receive:seenConversation', { conversation, userId: socket.user._id })
+    }
+
     socket.on('send:newMessage', wrapHandler(socket, handleMessage))
     socket.on('send:seenMessage', wrapHandler(socket, handleMessageSeen));
     socket.on('send:receivedMessage', wrapHandler(socket, handleMessageReceived));
+    socket.on('send:seenConversation', wrapHandler(socket, handleSeenConversation));
+
 }
 
 module.exports = MessageHandler
