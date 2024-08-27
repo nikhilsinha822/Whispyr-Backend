@@ -13,7 +13,7 @@ const login = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Missing required fields", 400))
 
     const user = await User.findOne({ email: email });
-    if(!user)
+    if (!user)
         return next(new ErrorHandler('Wrong email or password', 401))
 
     const isValidPass = bcrypt.compareSync(password, user.password);
@@ -25,13 +25,13 @@ const login = catchAsyncError(async (req, res, next) => {
     res.status(200).json({
         success: true,
         message: "Successfully logged In",
-        data: { accessToken, email: user.email, _id: user._id}
+        data: { accessToken, email: user.email, _id: user._id }
     })
 })
 
 const register = catchAsyncError(async (req, res, next) => {
-    const { email, password } = req.body;
-    if (!email || !password)
+    const { email, password, name } = req.body;
+    if (!email || !password || !name)
         return next(new ErrorHandler("Missing required fields", 400))
 
     if (!validateEmail(email))
@@ -51,7 +51,8 @@ const register = catchAsyncError(async (req, res, next) => {
 
     await User.create({
         email: email,
-        password: hashPassword
+        password: hashPassword,
+        name: name
     })
 
     const token = jwt.sign({ email: email },
@@ -87,7 +88,7 @@ const verifyEmail = catchAsyncError(async (req, res, next) => {
     res.status(200).json({
         success: true,
         message: "Email verification success.",
-        data: { accessToken, email: user.email, _id: user._id}
+        data: { accessToken, email: user.email, _id: user._id }
     });
 })
 
@@ -173,7 +174,7 @@ const sendToken = (res, payload) => {
 }
 
 const logout = catchAsyncError((req, res, next) => {
-    if(!req?.cookie?.jwt){
+    if (!req?.cookie?.jwt) {
         return res.sendStatus(204);
     }
 
@@ -182,7 +183,7 @@ const logout = catchAsyncError((req, res, next) => {
         sameSite: 'None',
         secure: true
     })
-    res.json({message: "Logout successfully"});
+    res.json({ message: "Logout successfully" });
 })
 
 module.exports = {

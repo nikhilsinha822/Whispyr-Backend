@@ -79,14 +79,13 @@ const verificationTemplate = (link) => {
     </head>
     <body>
         <div class="container">
-            <img src="/api/placeholder/80/80" alt="Company Logo" class="logo">
             <h1>Verify Your Account</h1>
             <p class="message">Thank you for signing up! To complete your account setup and ensure the security of your information, please click the button below:</p>
             <a href="${link}" class="btn">Verify Account</a>
             <p class="message">This link will expire in 5 mins for security reasons. If you didn't request this verification, please disregard this email or contact our support team.</p>
             <div class="footer">
-                <p>© 2024 Your Company Name. All rights reserved.</p>
-                <p>If you have any questions, please contact our support at support@yourcompany.com</p>
+                <p>© 2024 Whispyr. All rights reserved.</p>
+                <p>If you have any questions, please contact our support at support@whispyr.netlify.app</p>
             </div>
         </div>
     </body>
