@@ -103,6 +103,7 @@ const forgetPassword = catchAsyncError(async (req, res, next) => {
     const token = jwt.sign({ email: email },
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: '5m' })
+
     sendEmail({
         to: user.email,
         subject: "Reset Password",
@@ -111,8 +112,7 @@ const forgetPassword = catchAsyncError(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        message: "Password reset link is sent. Please check your email.",
-        data: { accessToken, email: user.email, _id: user._id}
+        message: "Password reset link is sent. Please check your email."
     })
 })
 
@@ -172,10 +172,24 @@ const sendToken = (res, payload) => {
     return accessToken;
 }
 
+const logout = catchAsyncError((req, res, next) => {
+    if(!req?.cookie?.jwt){
+        return res.sendStatus(204);
+    }
+
+    res.clearCookie('jwt', {
+        httpOnly: true,
+        sameSite: 'None',
+        secure: true
+    })
+    res.json({message: "Logout successfully"});
+})
+
 module.exports = {
     login,
     register,
     verifyEmail,
     forgetPassword,
-    changePassword
+    changePassword,
+    logout
 }

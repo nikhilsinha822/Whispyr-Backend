@@ -98,7 +98,6 @@ const passwordReset = (resetLink) => {
         </head>
         <body>
             <div class="container">
-            <img src="/api/placeholder/80/80" alt="Company Logo" class="logo">
             <h1>Password Reset Request</h1>
             <p class="message">We received a request to reset your password. If you didn't make this request, you can safely ignore this email.</p>
             <p class="message">To reset your password, click the button below:</p>
@@ -108,8 +107,8 @@ const passwordReset = (resetLink) => {
                 <strong>Security Tip:</strong> Never share your password or this reset link with anyone. We will never ask for your password via email or phone.
             </div>
             <div class="footer">
-                <p>© 2024 Your Company Name. All rights reserved.</p>
-                <p>If you didn't request a password reset, please contact our support team immediately at support@yourcompany.com</p>
+                <p>© 2024 Whispyr. All rights reserved.</p>
+                <p>If you didn't request a password reset, please contact our support team immediately at support@whispyr.netlify.app</p>
             </div>
             </div>
         </body>
